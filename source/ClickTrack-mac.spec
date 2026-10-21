@@ -19,9 +19,9 @@ if architecture not in ("arm64", "x86_64") or architecture != platform.machine()
 version = os.environ.get("CLICKTRACK_VERSION", "1.0.0").removeprefix("v")
 if not re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", version):
     raise ValueError("The Mac release version must contain three numbers, such as 1.0.0.")
-minimum_system = os.environ.get("CLICKTRACK_MAC_MIN_VERSION", "14.0")
+minimum_system = os.environ.get("CLICKTRACK_MAC_MIN_VERSION", "15.0")
 if not re.fullmatch(r"\d+\.\d+(?:\.\d+)?", minimum_system):
-    raise ValueError("CLICKTRACK_MAC_MIN_VERSION must be a macOS version such as 14.0.")
+    raise ValueError("CLICKTRACK_MAC_MIN_VERSION must be a macOS version such as 15.0.")
 
 decoder_name = os.environ.get("CLICKTRACK_FFMPEG") or shutil.which("ffmpeg")
 if not decoder_name or not Path(decoder_name).is_file():

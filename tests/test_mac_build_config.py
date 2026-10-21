@@ -75,7 +75,7 @@ def test_native_mac_bundle_has_runtime_decoder_and_assets_only(build_spec, monke
     assert bundle["version"] == "1.2.3"
     assert bundle["info_plist"]["CFBundleShortVersionString"] == "1.2.3"
     assert bundle["info_plist"]["CFBundleVersion"] == "1.2.3"
-    assert bundle["info_plist"]["LSMinimumSystemVersion"] == "14.0"
+    assert bundle["info_plist"]["LSMinimumSystemVersion"] == "15.0"
     assert bundle["info_plist"]["NSHighResolutionCapable"] is True
     assert "NSMicrophoneUsageDescription" not in bundle["info_plist"]
 
@@ -117,12 +117,12 @@ def test_mac_spec_rejects_missing_or_windows_decoder(build_spec, monkeypatch, tm
 
 def test_mac_spec_honors_explicit_minimum_and_requires_icon(build_spec, monkeypatch):
     execute, _, _, icon = build_spec
-    monkeypatch.setenv("CLICKTRACK_MAC_MIN_VERSION", "15.0")
-    assert execute()["bundle"][1]["info_plist"]["LSMinimumSystemVersion"] == "15.0"
+    monkeypatch.setenv("CLICKTRACK_MAC_MIN_VERSION", "16.0")
+    assert execute()["bundle"][1]["info_plist"]["LSMinimumSystemVersion"] == "16.0"
     monkeypatch.setenv("CLICKTRACK_MAC_MIN_VERSION", "14/../../")
     with pytest.raises(ValueError, match="macOS version"):
         execute()
-    monkeypatch.setenv("CLICKTRACK_MAC_MIN_VERSION", "14.0")
+    monkeypatch.setenv("CLICKTRACK_MAC_MIN_VERSION", "15.0")
     icon.unlink()
     with pytest.raises(RuntimeError, match="Mac icon is missing"):
         execute()
@@ -143,3 +143,17 @@ def test_mac_spec_keeps_native_portaudio_and_omits_unused_platform_variants(buil
     collected_args = calls["collect"][0]
     assert collected_args[1] == [native, system_native, other]
     assert collected_args[2] == [readme]
+
+
+def test_mac_requirements_change_only_qt_and_use_same_test_runner():
+    source = SPEC.parent
+    def pins(path):
+        return dict(line.strip().split("==", 1) for line in path.read_text(encoding="utf-8").splitlines()
+                    if line.strip() and not line.lstrip().startswith(("#", "-r")))
+    common = pins(source / "requirements.txt")
+    mac = pins(source / "requirements-mac.txt")
+    assert mac.pop("PySide6-Essentials") == "6.11.2"
+    common.pop("PySide6-Essentials")
+    assert mac == common
+    assert pins(source / "requirements-mac-dev.txt") == pins(source / "requirements-dev.txt")
+    assert "-r requirements-mac.txt" in (source / "requirements-mac-dev.txt").read_text(encoding="utf-8")

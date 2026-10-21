@@ -15,7 +15,7 @@ archive="$(cd "$(dirname "$archive")" && pwd -P)/$(basename "$archive")"
 case "$(uname -s)" in
     Darwin)
         binary=ffmpeg
-        export MACOSX_DEPLOYMENT_TARGET="${CLICKTRACK_MAC_MIN_VERSION:-14.0}"
+        export MACOSX_DEPLOYMENT_TARGET="${CLICKTRACK_MAC_MIN_VERSION:-15.0}"
         ;;
     MINGW*|MSYS*)
         case "${MSYSTEM:-}" in

@@ -7,8 +7,13 @@ SciPy 1.18.1: https://github.com/scipy/scipy
 SoundDevice 0.5.6 / PortAudio: https://github.com/spatialaudio/python-sounddevice
 SoundFile 0.14.0 / libsndfile: https://github.com/bastibe/python-soundfile
 CFFI: https://cffi.readthedocs.io/
-PySide6 / Shiboken6 / Qt 6.12.0: https://code.qt.io/cgit/pyside/pyside-setup.git/
-Qt sources: https://download.qt.io/official_releases/qt/
+PySide6 / Shiboken6 / Qt 6.12.0 (Windows), 6.11.2 (Mac): https://code.qt.io/cgit/pyside/pyside-setup.git/
+Exact Qt sources:
+https://download.qt.io/official_releases/qt/6.12/6.12.0/single/qt-everywhere-src-6.12.0.tar.xz
+https://download.qt.io/official_releases/qt/6.11/6.11.2/single/qt-everywhere-src-6.11.2.tar.xz
+Exact PySide/Shiboken sources:
+https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.12.0-src/pyside-setup-everywhere-src-6.12.0.tar.xz
+https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.11.2-src/pyside-setup-everywhere-src-6.11.2.tar.xz
 PyInstaller 6.22.3: https://github.com/pyinstaller/pyinstaller
 FFmpeg 9.0.1, LGPL 2.1 or later, unmodified minimal decoder:
 https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz

@@ -4,7 +4,7 @@ Metronome, song tempo finder, and click-track WAV exporter
 OPEN
 Windows: extract the entire ZIP into a folder you can write to, then open
 app/ClickTrack.exe. Keep the EXE and _internal support folder together.
-Mac: choose arm64 for Apple Silicon or x86_64 for Intel (macOS 14 or newer).
+Mac: choose arm64 for Apple Silicon or x86_64 for Intel (macOS 15 or newer).
 Extract the ZIP and drag ClickTrack.app to Applications, then open it.
 The Mac app is not notarized. If blocked after attempting to open it, use
 System Settings > Privacy & Security > Open Anyway to approve your download.

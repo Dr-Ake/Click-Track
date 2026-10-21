@@ -12,7 +12,7 @@ python="${CLICKTRACK_PYTHON:-python3}"
 version="${1:-${CLICKTRACK_VERSION:-1.0.0}}"
 version="${version#v}"
 architecture="${2:-$(uname -m)}"
-minimum_system="${CLICKTRACK_MAC_MIN_VERSION:-14.0}"
+minimum_system="${CLICKTRACK_MAC_MIN_VERSION:-15.0}"
 
 # Validate before creating build or output directories.
 "$python" - "$version" "$architecture" "$minimum_system" <<'PY'
@@ -25,7 +25,7 @@ if not re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", version):
 if architecture not in ("arm64", "x86_64") or architecture != platform.machine():
     raise SystemExit("Build each architecture with a matching native Mac and Python.")
 if not re.fullmatch(r"\d+\.\d+(?:\.\d+)?", minimum):
-    raise SystemExit("Use a macOS minimum version such as 14.0.")
+    raise SystemExit("Use a macOS minimum version such as 15.0.")
 PY
 
 decoder="${CLICKTRACK_FFMPEG:-$(command -v ffmpeg || true)}"

@@ -3,8 +3,8 @@ ClickTrack runs without installing Python, FFmpeg, or other development tools.
 Choose your download:
 
 - **Windows 10/11, 64 bit:** `ClickTrack-1.0.0-windows-x64.zip`. Extract the complete ZIP into a writable folder, then open `app/ClickTrack.exe`.
-- **Apple Silicon Mac (M1 or newer), macOS 14+:** `ClickTrack-1.0.0-macos-arm64.zip`.
-- **Intel Mac, macOS 14+:** `ClickTrack-1.0.0-macos-x86_64.zip`.
+- **Apple Silicon Mac (M1 or newer), macOS 15+:** `ClickTrack-1.0.0-macos-arm64.zip`.
+- **Intel Mac, macOS 15+:** `ClickTrack-1.0.0-macos-x86_64.zip`.
 
 On Mac, extract the ZIP and drag `ClickTrack.app` to Applications. These builds have an ad hoc signature and are not notarized. If macOS blocks the first launch, attempt to open it, then use **System Settings → Privacy & Security → Open Anyway**. [Apple's instructions](https://support.apple.com/en-us/102445). Windows may show an unknown publisher notice.
 

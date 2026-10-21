@@ -11,8 +11,8 @@ Get a ZIP from [Releases](https://github.com/Dr-Ake/Click-Track/releases/latest)
 | Computer | Download | Open |
 | --- | --- | --- |
 | Windows 10/11, 64 bit | `windows-x64.zip` | Extract the whole ZIP to a writable folder, then open `app/ClickTrack.exe`. Keep `_internal` beside the EXE. |
-| Mac with Apple Silicon (M1 or newer), macOS 14+ | `macos-arm64.zip` | Extract, then drag `ClickTrack.app` to Applications. |
-| Intel Mac, macOS 14+ | `macos-x86_64.zip` | Extract, then drag `ClickTrack.app` to Applications. |
+| Mac with Apple Silicon (M1 or newer), macOS 15+ | `macos-arm64.zip` | Extract, then drag `ClickTrack.app` to Applications. |
+| Intel Mac, macOS 15+ | `macos-x86_64.zip` | Extract, then drag `ClickTrack.app` to Applications. |
 
 The releases are unsigned; macOS builds have an ad hoc signature and are not notarized. After attempting to open a Mac download, approve it in **System Settings → Privacy & Security → Open Anyway** if macOS blocks it. See [Apple's instructions](https://support.apple.com/en-us/102445). Windows may also show an unknown publisher notice.
 
@@ -34,10 +34,12 @@ On Windows, library, settings, and logs live in `data` beside the `app` folder. 
 
 ## Build from source
 
-Use Python 3.12 and install `source/requirements-dev.txt` into a virtual environment. Run `python source/app.py` or `python -m pytest tests -q`. Source development requires Python; release downloads already include it.
+Use Python 3.12 and install `source/requirements-dev.txt` on Windows or `source/requirements-mac-dev.txt` on Mac into a virtual environment. Run `python source/app.py` or `python -m pytest tests -q`. Source development requires Python; release downloads already include it.
 
 The [release workflow](.github/workflows/release.yml) builds Windows x64 and native Mac arm64/x86_64 packages, runs tests and a packaged-app smoke check, and publishes only after all three platforms succeed. Dispatch it with a three-part version and Publish enabled, or push a `vX.Y.Z` tag. Repeated builds of a published version are rejected.
 
 All platforms build a local-file-only FFmpeg decoder from the exact official source pinned in `source/decoder-source.json`. Run `python source/Fetch-Decoder-Source.py`, then `bash source/Build-Decoder.sh work/decoder-source/ffmpeg-9.0.1.tar.xz` on Mac or in MSYS2 MINGW64 on Windows. Set `CLICKTRACK_FFMPEG` to the resulting native executable. Build with `source/Build.ps1` and `source/Package-Release.ps1 -Version X.Y.Z` on Windows, or `bash source/Build-Mac.sh X.Y.Z arm64` (or `x86_64`) on a matching Mac. Build outputs go to `work`, release ZIPs to `outputs`.
+
+Windows uses Qt/PySide 6.12.0. Mac uses 6.11.2 because its actual native deployment targets support macOS 15; the 6.12.0 Shiboken library requires macOS 26 despite its wheel label. Every bundled Mac binary is checked before packaging.
 
 Releases include third-party notices. The exact FFmpeg source archive and build recipe accompany the release; the decoder is a separate LGPL 2.1-or-later component. Other components retain the license terms in `licenses`. ClickTrack releases are free to download and run.
