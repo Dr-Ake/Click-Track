@@ -1,0 +1,79 @@
+CLICKTRACK
+Metronome, song tempo finder, and click-track WAV exporter
+
+OPEN
+Double-click ClickTrack on your desktop.
+The application and its support files are in this ClickTrack folder, under app.
+Keep the app folder together if you move it. No Python installation is required.
+
+SET YOUR OWN TEMPO
+Type a BPM between 20 and 300, use the slider, or tap T to a steady beat.
+Press Start click. Space plays and pauses playback.
+Choose beats per bar, subdivisions, an accented first beat, sound, and volume.
+Changing a setting pauses playback. Press Play to hear the new settings.
+
+FIND A SONG'S BPM
+Choose a song or drop audio files onto the window. Common formats include
+MP3, WAV, FLAC, M4A, AAC, OGG, OPUS, WMA, and AIFF. Songs can be up to 30 minutes.
+The estimated BPM is applied automatically. Enable 'Play song with the click'
+to check the result. Adjust 'First click at' to move the clicks against the song.
+The half-speed and double-speed buttons help with ambiguous rhythms.
+The detector estimates one steady tempo. Live performances, tempo changes,
+quiet introductions, syncopation, and unusual rhythms can need manual correction.
+The first click is an estimated pulse; a song's bar/downbeat is not identified.
+
+YOUR SONG LIBRARY
+Click Add songs to choose one or several songs. New songs are analyzed once
+and added to the saved library. Click any song in the list to instantly load
+its saved BPM, beats per bar, subdivision, sound, volume, and first-click offset.
+Press Start click when you are ready to play. Songs are not played automatically
+when selected. Any adjustments save automatically with the selected song.
+Drag songs to arrange a setlist, or select one and use Up / Down. Rename changes
+its library title. Remove removes only its library entry and keeps the song file.
+Your library and ordering are remembered when you close and reopen ClickTrack.
+The original audio stays in its current folder; ClickTrack stores a reference.
+If a file moves, its saved click settings still work. Select the song and use
+Locate audio file to reconnect it. Selecting an existing song uses your saved
+tempo corrections, without analyzing it again.
+The library is D:\Click-Track\data\library.json. Preferences and practice loop
+marks are in data\settings.ini. Back up the data folder to keep your setlist
+and settings; back up your song files separately.
+
+SONG POSITION AND PRACTICE LOOPS
+The timeline below Start click lets you choose where a song or its click track
+starts. Click or drag the playhead, then press Play. While playing, dragging
+restarts at the chosen position when you release the mouse.
+Snap to beat is on by default. The playhead and A/B brackets snap to the song's
+main beats using its saved BPM and first-click offset. The left/right arrows
+step by one beat. Turn Snap off to type an exact position to a millisecond.
+Pause keeps your current position, so Play resumes from that spot.
+
+Drag the A and B brackets to mark a practice section. Set A and Set B place
+the brackets at the current position; the A/B time fields also allow editing.
+Loop section repeats the range from A up to B. Song audio and the click repeat
+together; the click keeps the original beat and bar accents. Uncheck Loop
+section to play onward. Enable Play song with the click to hear the recording.
+Loop marks are remembered separately for each library song on this computer.
+Beat snapping follows the estimated BPM; adjust BPM and First click at if the
+song's timing is different. Recordings with changing tempo can still drift.
+Exported WAVs still contain the full selected length, without the practice loop.
+
+SAVE A CLICK TRACK
+Choose a length, then Save WAV. The exported WAV contains only the click.
+With a song imported, 'Match the imported song's length & offset' uses its
+duration and the First click at setting. For a custom length, uncheck that box;
+the first click then starts at time zero. Export uses 44.1 kHz, mono, 16-bit PCM.
+The original song stays separate. Click volume also sets the exported volume.
+Custom exports may be up to two hours.
+
+AUDIO OUTPUT
+Use Windows default output or choose an output in the app. If you connect new
+headphones, press Refresh. Bluetooth may add audible delay to visual feedback.
+Song playback uses a lower song level to leave room for the click.
+
+PRIVACY AND SUPPORT
+Song analysis and playback run on this computer. Files are not uploaded.
+No account, cloud service, subscription, or API key is required.
+The active project, app, and saved data are in D:\Click-Track.
+The error log is data\clicktrack.log. Temporary decoder files are in work\temp.
+Editable program source is in source. Third-party licenses are in licenses.

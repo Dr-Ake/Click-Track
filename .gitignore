@@ -1,0 +1,7 @@
+app/
+app-build/
+data/
+work/
+__pycache__/
+*.py[cod]
+*.log
