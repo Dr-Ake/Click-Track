@@ -227,6 +227,15 @@ class MainWindow(QMainWindow):
         self._restore()
         self._applying_song = False
         self.refresh_library()
+        # Native font metrics vary. Reserve room for the vertical scrollbar at
+        # the smallest window size so practice controls never scroll sideways.
+        scroll = self.centralWidget()
+        scroll.ensurePolished()
+        content = scroll.widget()
+        content.layout().activate()
+        self.setMinimumWidth(max(self.minimumWidth(), content.minimumSizeHint().width()
+                                 + 2 * scroll.frameWidth()
+                                 + scroll.verticalScrollBar().sizeHint().width()))
         if self.library.error:
             self.library_note.setText(self.library.error)
             self.status.setText("The song library could not be opened. Your original library file has been preserved.")
