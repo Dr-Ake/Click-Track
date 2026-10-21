@@ -24,10 +24,12 @@ a.binaries = [item for item in a.binaries
               and not Path(item[0]).name.lower().startswith('icudt')
               and not ('portaudio' in item[0].lower() and
                        ('asio' in item[0].lower() or '32bit' in item[0].lower()
+                        or 'arm64' in item[0].lower()
                         or item[0].lower().endswith(('.dylib', '.so'))))]
 a.datas = [item for item in a.datas
            if not ('portaudio' in item[0].lower() and
                    ('asio' in item[0].lower() or '32bit' in item[0].lower()
+                    or 'arm64' in item[0].lower()
                     or item[0].lower().endswith(('.dylib', '.so'))))]
 
 # Use the Qt wheel's matching C++ runtime consistently at the bundle root.
