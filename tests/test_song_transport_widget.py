@@ -169,10 +169,20 @@ def test_native_compact_render_and_long_song_grid(transport):
     transport.set_song(1800,300,.423,7)
     transport.set_loop(True,33.423,67.423)
     transport.set_position(44.837)
-    transport.resize(310,180)
+    # Measure compactness in text units so larger system fonts remain readable.
+    # About 45 digits gives the original 310px budget at the default font size.
+    width_budget = max(310, 45 * transport.fontMetrics().horizontalAdvance('0'))
+    height_budget = max(200, 12 * transport.fontMetrics().height())
+    transport.resize(width_budget,180)
     pump()
-    assert transport.minimumSizeHint().height()<=200
-    assert transport.minimumSizeHint().width()<=310
+    assert transport.minimumSizeHint().height() <= height_budget
+    assert transport.minimumSizeHint().width() <= width_budget
+    for control in (transport.time_label, transport.position_spin,
+                    transport.snap_checkbox, transport.loop_checkbox,
+                    transport.loop_start_spin, transport.loop_end_spin,
+                    transport.set_a_button, transport.set_b_button):
+        bounds = control.geometry()
+        assert bounds.left() >= 0 and bounds.right() < transport.width()
     output=BASE/'work/qa/song-transport.png'
     output.parent.mkdir(parents=True,exist_ok=True)
     assert transport.grab().save(str(output))

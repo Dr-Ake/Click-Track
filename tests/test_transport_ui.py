@@ -326,7 +326,7 @@ def test_actual_brackets_drag_to_beats_and_enable_practice_loop(make_window):
     assert kwargs['loop_end_seconds'] == pytest.approx(6.3)
 
 
-def test_real_audio_song_seek_loop_runs_multiple_cycles(make_window):
+def test_real_audio_song_seek_loop_runs_multiple_cycles(require_audio_output, make_window):
     w, _ = make_window([dict(include_song=True, volume=.04)], fake=False)
     loop(w, True, 2.3, 2.8)
     seek(w, 2.3)

@@ -113,7 +113,7 @@ def test_tap_tempo(window,monkeypatch):
     assert window.bpm.value()==120
 
 
-def test_real_audio_start_stop(window):
+def test_real_audio_start_stop(require_audio_output, window):
     window.volume.setValue(8)
     window.toggle_play()
     QTest.qWait(700)
@@ -128,7 +128,7 @@ def test_real_audio_start_stop(window):
     assert not window.engine.running
 
 
-def test_threaded_import_export(window,tmp_path,monkeypatch):
+def test_threaded_import_export(window,tmp_path,monkeypatch,recording_playback_engine):
     song=fixture_song(tmp_path/'fixture.wav')
     window.import_song(str(song))
     assert not window.import_button.isEnabled()
@@ -150,11 +150,18 @@ def test_threaded_import_export(window,tmp_path,monkeypatch):
     assert info.frames==len(window.audio.samples)
     assert window.last_export==str(path)
     window.grab().save(str(BASE/'work'/'qa'/'ui_analyzed.png'))
+    # The import/export above is real; only this UI playback request is recorded.
+    window.engine=recording_playback_engine
     window.include_song.setChecked(True)
     window.volume.setValue(5)
     window.toggle_play()
     QTest.qWait(500)
     assert window.engine.running
+    settings,arguments=window.engine.starts[-1]
+    assert arguments['include_song'] is True
+    assert arguments['audio'] is window.audio
+    assert arguments['duration_seconds']==window.audio.duration
+    assert settings.bpm==window.bpm.value()
     window.stop()
 
 

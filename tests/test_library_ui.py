@@ -170,7 +170,7 @@ def test_reorder_through_list_model_is_durable(make_window, tmp_path):
     assert [w.library_list.item(i).data(Qt.ItemDataRole.UserRole) for i in range(3)] == expected
 
 
-def test_missing_source_still_loads_click_settings(make_window, tmp_path):
+def test_missing_source_still_loads_click_settings(make_window, tmp_path, recording_playback_engine):
     path = tmp_path / 'library.json'
     entry = SongLibrary(path).add(str(tmp_path / 'Moved away.wav'), bpm=141.2,
         beats_per_bar=6, subdivision=2, volume=.05, offset_seconds=1.234,
@@ -183,11 +183,20 @@ def test_missing_source_still_loads_click_settings(make_window, tmp_path):
     assert w.subdivision.currentData() == 2
     assert w.offset.value() == 1.234
     assert w.audio is None
+    # Check the playback request independently of a physical output device.
+    w.engine = recording_playback_engine
     w.include_song.setChecked(False)
     w.toggle_play()
     pump(.25)
     assert w.engine.running
     assert w.engine.error is None
+    settings, arguments = w.engine.starts[-1]
+    assert settings.bpm == 141.2
+    assert settings.beats_per_bar == 6
+    assert settings.subdivision == 2
+    assert settings.offset_seconds == 1.234
+    assert arguments['include_song'] is False
+    assert arguments['audio'] is None
     w.stop()
     assert SongLibrary(path).get(entry['id'])['bpm'] == 141.2
 
