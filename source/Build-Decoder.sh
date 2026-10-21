@@ -16,7 +16,6 @@ case "$(uname -s)" in
     Darwin)
         binary=ffmpeg
         export MACOSX_DEPLOYMENT_TARGET="${CLICKTRACK_MAC_MIN_VERSION:-14.0}"
-        platform_flags=()
         ;;
     MINGW*|MSYS*)
         case "${MSYSTEM:-}" in
@@ -24,8 +23,6 @@ case "$(uname -s)" in
             *) printf '%s\n' 'Build Windows FFmpeg in a native MSYS2 MINGW64 or UCRT64 shell.' >&2; exit 1 ;;
         esac
         binary=ffmpeg.exe
-        # Avoid a separate libgcc/libwinpthread runtime on recipients' computers.
-        platform_flags=(--extra-ldflags=-static)
         ;;
     *) printf '%s\n' 'Build-Decoder.sh supports native macOS and MSYS2 Windows builds.' >&2; exit 1 ;;
 esac
@@ -65,12 +62,16 @@ options=(
     --enable-muxer=wav --enable-encoder=pcm_f32le
     --enable-filter=aresample,aformat
 )
+if [[ "$binary" == ffmpeg.exe ]]; then
+    # Avoid a separate libgcc/libwinpthread runtime on recipients' computers.
+    options+=(--extra-ldflags=-static)
+fi
 # FFmpeg 9.0.1 always registers abuffer/abuffersink with libavfilter; enabling
 # the ffmpeg program also selects its aformat/anull/atrim support filters.
 if ! command -v nasm >/dev/null 2>&1; then
     options+=(--disable-x86asm)
 fi
-./configure "${options[@]}" "${platform_flags[@]}"
+./configure "${options[@]}"
 make -j "$jobs" "$binary"
 install -m 755 "$binary" "$prefix/bin/$binary"
 "$prefix/bin/$binary" -hide_banner -version > "$prefix/FFmpeg-build-info.txt"

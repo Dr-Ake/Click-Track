@@ -55,7 +55,13 @@ jobs:
         run: python -m pip install -r source/requirements-dev.txt
       - name: Fetch and verify exact decoder source
         run: python source/Fetch-Decoder-Source.py
+      - uses: actions/cache@v4
+        id: decoder-cache
+        with:
+          path: work/decoder
+          key: decoder-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('source/decoder-source.json', 'source/Build-Decoder.sh') }}
       - uses: msys2/setup-msys2@v2
+        if: steps.decoder-cache.outputs.cache-hit != 'true'
         with:
           msystem: MINGW64
           update: true
@@ -65,6 +71,7 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-nasm
       - name: Build native decoder
+        if: steps.decoder-cache.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: bash source/Build-Decoder.sh work/decoder-source/ffmpeg-9.0.1.tar.xz
       - name: Refresh native license notices
@@ -80,7 +87,8 @@ jobs:
       - name: Check packaged application
         shell: pwsh
         run: |
-          $process = Start-Process -FilePath './work/dist/ClickTrack/ClickTrack.exe' -ArgumentList '--self-test','--self-test-report',"$PWD/work/windows-smoke.json" -WindowStyle Hidden -PassThru -Wait
+          $process = Start-Process -FilePath './work/dist/ClickTrack/ClickTrack.exe' -ArgumentList '--self-test','--self-test-report',"$PWD/work/windows-smoke.json" -WindowStyle Hidden -PassThru
+          if (-not $process.WaitForExit(120000)) { $process.Kill(); throw 'Packaged app startup timed out.' }
           if (Test-Path work/windows-smoke.json) { Get-Content work/windows-smoke.json }
           if ($process.ExitCode -ne 0) { throw 'Packaged app smoke test failed.' }
       - name: Create portable ZIP
@@ -92,7 +100,8 @@ jobs:
           $zip = Get-ChildItem outputs/*windows-x64.zip | Select-Object -First 1
           Expand-Archive -LiteralPath $zip.FullName -DestinationPath work/extracted
           $exe = Get-ChildItem work/extracted -Recurse -Filter ClickTrack.exe | Select-Object -First 1
-          $process = Start-Process -FilePath $exe.FullName -ArgumentList '--self-test','--self-test-report',"$PWD/work/windows-extracted-smoke.json" -WindowStyle Hidden -PassThru -Wait
+          $process = Start-Process -FilePath $exe.FullName -ArgumentList '--self-test','--self-test-report',"$PWD/work/windows-extracted-smoke.json" -WindowStyle Hidden -PassThru
+          if (-not $process.WaitForExit(120000)) { $process.Kill(); throw 'Extracted app startup timed out.' }
           if (Test-Path work/windows-extracted-smoke.json) { Get-Content work/windows-extracted-smoke.json }
           if ($process.ExitCode -ne 0) { throw 'Extracted app smoke test failed.' }
       - uses: actions/upload-artifact@v7
@@ -135,7 +144,13 @@ jobs:
         run: python -m pip install -r source/requirements-dev.txt
       - name: Fetch and verify exact decoder source
         run: python source/Fetch-Decoder-Source.py
+      - uses: actions/cache@v4
+        id: decoder-cache
+        with:
+          path: work/decoder
+          key: decoder-${{ runner.os }}-${{ runner.arch }}-mac14-${{ hashFiles('source/decoder-source.json', 'source/Build-Decoder.sh') }}
       - name: Build native decoder
+        if: steps.decoder-cache.outputs.cache-hit != 'true'
         run: bash source/Build-Decoder.sh work/decoder-source/ffmpeg-9.0.1.tar.xz
       - name: Refresh native license notices
         run: python source/Collect-Release-Licenses.py
