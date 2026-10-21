@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""Collect notices from the native build environment using only the stdlib.
+
+Run with the isolated Python that builds ClickTrack, after Build-Decoder.sh.
+Root-level handwritten notices are retained. Each installed distribution's
+managed subdirectory is refreshed from its actual installed RECORD entries.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.metadata as metadata
+import json
+from pathlib import Path, PurePosixPath
+import platform
+import re
+import shutil
+import sys
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parent.parent
+MANIFEST = "Release-component-manifest.json"
+
+
+def canonical(name: str) -> str:
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def pinned_requirements(path: Path) -> dict[str, str]:
+    pins = {}
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if line.startswith("-r "):
+            pins.update(pinned_requirements(path.parent / line[3:].strip()))
+            continue
+        match = re.fullmatch(r"([A-Za-z0-9_.-]+)==([A-Za-z0-9_.+!-]+)", line)
+        if not match:
+            raise ValueError(f"Expected an exact dependency pin in {path.name}: {line}")
+        pins[canonical(match[1])] = match[2]
+    return pins
+
+
+def is_notice(record_path: str) -> bool:
+    path = PurePosixPath(record_path.replace("\\", "/"))
+    name = path.name.lower()
+    return (any(word in name for word in ("license", "licence", "copying", "copyright"))
+            or name == "notice" or name.startswith("notice.")
+            or any(part.lower() in ("licenses", "licences", "licensing")
+                   for part in path.parts[:-1]))
+
+
+def record_destination(record_path: str) -> Path:
+    # Some wheels install shared files outside site-packages. Keep their RECORD
+    # location recognizable while preventing a destination path from escaping.
+    parts = PurePosixPath(record_path.replace("\\", "/")).parts
+    clean = ["__parent__" if part == ".." else part.replace(":", "_")
+             for part in parts if part not in ("", ".", "/")]
+    if not clean:
+        raise ValueError("An installed notice has an empty file name.")
+    return Path(*clean)
+
+
+def file_record(path: Path, relative: Path, original: str | None = None) -> dict:
+    result = {"path": relative.as_posix(), "bytes": path.stat().st_size,
+              "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+    if original is not None:
+        result["installed_record_path"] = original
+    return result
+
+
+def managed_folder(output: Path, name: str) -> Path:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", name):
+        raise ValueError(f"Unsafe installed distribution name: {name!r}")
+    folder = output / name
+    # Resolve and verify before any recursive replacement, also rejecting a
+    # pre-existing symlink or junction leading outside the chosen output.
+    if folder.resolve().parent != output or folder.is_symlink():
+        raise ValueError(f"Unsafe managed license directory: {folder}")
+    return folder
+
+
+def collect_distribution(dist, output: Path) -> dict:
+    name = dist.metadata["Name"]
+    folder = managed_folder(output, name)
+    records = []
+    with tempfile.TemporaryDirectory(prefix=".collect-licenses-", dir=output) as temporary:
+        staging = Path(temporary)
+        for entry in sorted(dist.files or (), key=str):
+            original = str(entry)
+            if not is_notice(original):
+                continue
+            source = Path(dist.locate_file(entry))
+            if not source.is_file():
+                raise FileNotFoundError(f"Installed notice is missing: {name}: {original}")
+            relative = record_destination(original)
+            destination = staging / relative
+            if not destination.resolve().is_relative_to(staging.resolve()):
+                raise ValueError(f"Unsafe installed notice path: {original}")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, destination)
+            records.append(file_record(destination, Path(name) / relative, original))
+        # The destination was checked above and again immediately before removal.
+        # Root-level hand-maintained files never enter this replacement path.
+        folder = managed_folder(output, name)
+        if folder.exists():
+            if not folder.is_dir():
+                raise ValueError(f"Managed license path is not a directory: {folder}")
+            shutil.rmtree(folder)
+        shutil.copytree(staging, folder)
+    return {"name": name, "version": dist.version, "files": records}
+
+
+def collect_decoder(directory: Path, output: Path, skip: bool) -> dict:
+    if skip:
+        return {"status": "skipped", "files": []}
+    mapping = {
+        "COPYING.LGPLv2.1": "FFmpeg-LICENSE.txt",
+        "FFmpeg-license.txt": "FFmpeg-decoder-notice.txt",
+        "FFmpeg-build-info.txt": "FFmpeg-build-info.txt",
+    }
+    missing = [name for name in mapping if not (directory / name).is_file()]
+    if missing:
+        raise FileNotFoundError("Build the native decoder before collecting licenses; missing: "
+                                + ", ".join(missing))
+    records = []
+    for source_name, destination_name in mapping.items():
+        destination = output / destination_name
+        shutil.copyfile(directory / source_name, destination)
+        records.append(file_record(destination, Path(destination_name)))
+    return {"status": "collected", "files": records}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, default=ROOT / "licenses")
+    parser.add_argument("--requirements", type=Path, default=ROOT / "source" / "requirements.txt")
+    parser.add_argument("--decoder-dir", type=Path, default=ROOT / "work" / "decoder")
+    parser.add_argument("--skip-decoder", action="store_true",
+                        help="For wheel-notice checks only; do not use for release packaging.")
+    args = parser.parse_args()
+    distributions = sorted(metadata.distributions(), key=lambda d: canonical(d.metadata["Name"]))
+    installed = {canonical(dist.metadata["Name"]): dist.version for dist in distributions}
+    pins = pinned_requirements(args.requirements)
+    mismatches = [f"{name}: expected {version}, found {installed.get(name, 'not installed')}"
+                  for name, version in pins.items() if installed.get(name) != version]
+    if mismatches:
+        raise ValueError("Build environment does not match pinned requirements:\n" + "\n".join(mismatches))
+    output = args.output.resolve()
+    if any(output == Path(dist.locate_file("")).resolve() for dist in distributions):
+        raise ValueError("License output must not be an installed site-packages directory.")
+    # Check required decoder inputs before refreshing any managed directories.
+    if not args.skip_decoder:
+        for name in ("COPYING.LGPLv2.1", "FFmpeg-license.txt", "FFmpeg-build-info.txt"):
+            if not (args.decoder_dir / name).is_file():
+                raise FileNotFoundError(f"Build the native decoder first; missing {args.decoder_dir / name}")
+    output.mkdir(parents=True, exist_ok=True)
+    collected = [collect_distribution(dist, output) for dist in distributions]
+    decoder = collect_decoder(args.decoder_dir, output, args.skip_decoder)
+    manifest = {"format_version": 1, "python": platform.python_version(),
+                "platform": sys.platform, "architecture": platform.machine(),
+                "requirements": pins,
+                "scope": "Installed build environment; entries do not imply every package is bundled.",
+                "distributions": collected, "decoder": decoder}
+    (output / MANIFEST).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    count = sum(len(item["files"]) for item in collected) + len(decoder["files"])
+    without_notices = [item["name"] for item in collected if not item["files"]]
+    print(f"Collected {count} notice files from {len(collected)} installed distributions into {output}.")
+    if without_notices:
+        print("No installed notice files recorded for: " + ", ".join(without_notices), file=sys.stderr)
+    print(f"Version and file-hash manifest: {output / MANIFEST}")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (OSError, ValueError) as exc:
+        print(f"License collection failed: {exc}", file=sys.stderr)
+        raise SystemExit(1)

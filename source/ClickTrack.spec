@@ -21,7 +21,14 @@ a = Analysis([str(source / 'app.py')], pathex=[str(source)],
 # The Windows 10/11 system DLL exports the API expected by this Qt wheel.
 a.binaries = [item for item in a.binaries
               if Path(item[0]).name.lower() != 'icuuc.dll'
-              and not Path(item[0]).name.lower().startswith('icudt')]
+              and not Path(item[0]).name.lower().startswith('icudt')
+              and not ('portaudio' in item[0].lower() and
+                       ('asio' in item[0].lower() or '32bit' in item[0].lower()
+                        or item[0].lower().endswith(('.dylib', '.so'))))]
+a.datas = [item for item in a.datas
+           if not ('portaudio' in item[0].lower() and
+                   ('asio' in item[0].lower() or '32bit' in item[0].lower()
+                    or item[0].lower().endswith(('.dylib', '.so'))))]
 
 # Use the Qt wheel's matching C++ runtime consistently at the bundle root.
 qt = Path(PySide6.__file__).parent

@@ -1,4 +1,4 @@
-"""Sample-accurate click and optional song playback through Windows audio."""
+"""Sample-accurate click and optional song playback through native audio."""
 
 from __future__ import annotations
 

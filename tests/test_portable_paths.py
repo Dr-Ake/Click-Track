@@ -17,6 +17,7 @@ from song_library import SongLibrary
 
 @pytest.fixture
 def portable_root(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, 'platform', 'win32')
     root = tmp_path / 'Portable ClickTrack'
     (root / 'source').mkdir(parents=True)
     monkeypatch.setattr(app_paths, '__file__', str(root / 'source' / 'app_paths.py'))
@@ -150,5 +151,37 @@ def test_source_run_uses_bundled_decoder_without_path_dependency(portable_root, 
     decoder.parent.mkdir(parents=True)
     decoder.write_bytes(b'placeholder; finder must not execute it')
     monkeypatch.setattr(audio_core, '__file__', str(portable_root / 'source' / 'audio_core.py'))
+    monkeypatch.setattr(audio_core.shutil, 'which', lambda command: None)
+    assert Path(audio_core._ffmpeg_path()) == decoder
+
+
+def test_mac_bundle_uses_writable_user_data(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, 'platform', 'darwin')
+    monkeypatch.setattr(sys, 'frozen', True, raising=False)
+    install = tmp_path / 'Applications'
+    executable = install / 'ClickTrack.app' / 'Contents' / 'MacOS' / 'ClickTrack'
+    monkeypatch.setattr(sys, 'executable', str(executable))
+    home = tmp_path / 'user'
+    monkeypatch.setattr(Path, 'home', classmethod(lambda cls: home))
+    monkeypatch.setattr(tempfile, 'tempdir', None)
+    for key in ('TEMP', 'TMP', 'TMPDIR'):
+        monkeypatch.setenv(key, 'old')
+    expected = home / 'Library' / 'Application Support' / 'ClickTrack'
+    assert app_paths.project_root() == install
+    assert app_paths.data_directory() == expected
+    assert app_paths.export_directory() == home / 'Documents' / 'ClickTrack'
+    assert app_paths.configure_runtime_temp() == expected / 'cache' / 'temp'
+    assert Path(tempfile.gettempdir()).is_relative_to(expected)
+    assert not install.exists()
+
+
+def test_mac_bundled_decoder_needs_no_system_install(tmp_path, monkeypatch):
+    import audio_core
+    monkeypatch.setattr(sys, 'platform', 'darwin')
+    resources = tmp_path / 'ClickTrack.app' / 'Contents' / 'Frameworks'
+    resources.mkdir(parents=True)
+    decoder = resources / 'ffmpeg'
+    decoder.write_bytes(b'finder fixture')
+    monkeypatch.setattr(sys, '_MEIPASS', str(resources), raising=False)
     monkeypatch.setattr(audio_core.shutil, 'which', lambda command: None)
     assert Path(audio_core._ffmpeg_path()) == decoder

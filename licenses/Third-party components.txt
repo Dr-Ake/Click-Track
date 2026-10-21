@@ -1,7 +1,7 @@
 ClickTrack uses these unmodified third-party components. Their license and
-copyright notices accompany this file. Source for ClickTrack is in ../source.
+copyright notices accompany this file. ClickTrack source: https://github.com/Dr-Ake/Click-Track
 
-Python 3.12.10: https://www.python.org/downloads/release/python-31210/
+Python 3.12: https://www.python.org/downloads/source/
 NumPy 2.5.4: https://github.com/numpy/numpy
 SciPy 1.18.1: https://github.com/scipy/scipy
 SoundDevice 0.5.6 / PortAudio: https://github.com/spatialaudio/python-sounddevice
@@ -10,11 +10,20 @@ CFFI: https://cffi.readthedocs.io/
 PySide6 / Shiboken6 / Qt 6.12.0: https://code.qt.io/cgit/pyside/pyside-setup.git/
 Qt sources: https://download.qt.io/official_releases/qt/
 PyInstaller 6.22.3: https://github.com/pyinstaller/pyinstaller
-FFmpeg 9.0.1 essentials by Gyan Doshi: https://www.gyan.dev/ffmpeg/builds/
-FFmpeg source revision: https://github.com/FFmpeg/FFmpeg/commit/bf1b838f2a
+FFmpeg 9.0.1, LGPL 2.1 or later, unmodified minimal decoder:
+https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz
+Exact source archive is included alongside each release.
+Recipe: source/Build-Decoder.sh in the matching ClickTrack Git tag.
 FFmpeg build configuration and library versions: FFmpeg-build-info.txt
 
 The Qt, PySide, Shiboken, PortAudio and libsndfile libraries remain dynamically
-linked in app/_internal and can be replaced by compatible builds. Their LGPL
+linked in app/_internal on Windows or the .app Contents/Frameworks on Mac
+and can be replaced by compatible builds. Re-sign a modified Mac app locally
+with codesign --force --deep --sign - ClickTrack.app. Their LGPL
 terms permit reverse engineering to debug modifications to these libraries.
-The bundled FFmpeg executable is a separate, unmodified GPLv3 component.
+The bundled FFmpeg executable is a separate, unmodified LGPL 2.1-or-later
+component. Compile a replacement using the included exact source and recipe;
+no GPL, nonfree, external codec libraries, or network input is enabled.
+PortAudio copyright/license: PortAudio-LICENSE.txt.
+OpenSSL 3 copyright/license: OpenSSL-LICENSE.txt.
+GPL-3.0.txt accompanies the LGPL 3.0 terms used by Qt.

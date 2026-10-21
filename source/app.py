@@ -1,4 +1,4 @@
-"""ClickTrack: an offline Windows metronome and song tempo finder."""
+"""ClickTrack: an offline metronome and song tempo finder."""
 from __future__ import annotations
 
 import logging
@@ -26,7 +26,7 @@ from audio_core import ClickSettings, load_audio, analyze_audio, export_click_wa
 from playback import PlaybackEngine
 from song_library import SongLibrary
 from song_transport import SongTransport
-from app_paths import data_directory, configure_runtime_temp, project_root
+from app_paths import data_directory, configure_runtime_temp, project_root, export_directory
 
 APP_NAME = "ClickTrack"
 SETTINGS_FORMAT = QSettings.Format.IniFormat
@@ -481,7 +481,7 @@ class MainWindow(QMainWindow):
     def refresh_devices(self):
         current = self.device.currentData() if hasattr(self, "device") else None
         self.device.clear()
-        self.device.addItem("Windows default output", None)
+        self.device.addItem("System default output", None)
         try:
             devices = sd.query_devices()
             apis = sd.query_hostapis()
@@ -1111,7 +1111,7 @@ class MainWindow(QMainWindow):
         if duration <= 0:
             self.show_error("Choose a length", "Set a click track length greater than zero.")
             return
-        default_output = project_root() / "outputs"
+        default_output = export_directory()
         default_output.mkdir(parents=True, exist_ok=True)
         destination_dir = str(self.preferences.value("export_folder", default_output))
         default = f"ClickTrack_{self.bpm.value():g}BPM.wav"
@@ -1240,6 +1240,9 @@ class MainWindow(QMainWindow):
 
 
 def main():
+    if "--self-test" in sys.argv[1:]:
+        from release_smoke import run_self_test
+        return run_self_test(sys.modules[__name__], sys.argv[1:])
     configure_runtime_temp()
     log_folder = data_directory()
     log_folder.mkdir(parents=True, exist_ok=True)

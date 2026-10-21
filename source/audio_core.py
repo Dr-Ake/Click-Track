@@ -61,14 +61,17 @@ def _progress(callback, percent, message):
 def _ffmpeg_path():
     roots = [Path(getattr(sys, "_MEIPASS", Path(__file__).parent)),
              Path(__file__).parent, Path(__file__).parent.parent]
+    names = ("ffmpeg", "ffmpeg.exe") if sys.platform == "darwin" else ("ffmpeg.exe", "ffmpeg")
     for root in roots:
-        for relative in ("ffmpeg.exe", "bin/ffmpeg.exe", "assets/ffmpeg.exe"):
+        for relative in (relative for name in names for relative in (name, "bin/" + name, "assets/" + name)):
             candidate = root / relative
             if candidate.is_file():
                 return str(candidate)
-    bundled = project_root() / "app" / "_internal" / "ffmpeg.exe"
-    if bundled.is_file():
-        return str(bundled)
+    for name in names:
+        for folder in (project_root() / "app" / "_internal", project_root() / "work" / "decoder" / "bin"):
+            bundled = folder / name
+            if bundled.is_file():
+                return str(bundled)
     located = shutil.which("ffmpeg")
     if located:
         return located

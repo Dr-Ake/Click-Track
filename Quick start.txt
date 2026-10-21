@@ -2,9 +2,14 @@ CLICKTRACK
 Metronome, song tempo finder, and click-track WAV exporter
 
 OPEN
-Double-click ClickTrack on your desktop.
-The application and its support files are in this ClickTrack folder, under app.
-Keep the app folder together if you move it. No Python installation is required.
+Windows: extract the entire ZIP into a folder you can write to, then open
+app/ClickTrack.exe. Keep the EXE and _internal support folder together.
+Mac: choose arm64 for Apple Silicon or x86_64 for Intel (macOS 14 or newer).
+Extract the ZIP and drag ClickTrack.app to Applications, then open it.
+The Mac app is not notarized. If blocked after attempting to open it, use
+System Settings > Privacy & Security > Open Anyway to approve your download.
+See https://support.apple.com/en-us/102445 for Apple's first-launch instructions.
+No Python installation is required on either platform.
 
 SET YOUR OWN TEMPO
 Type a BPM between 20 and 300, use the slider, or tap T to a steady beat.
@@ -35,9 +40,9 @@ The original audio stays in its current folder; ClickTrack stores a reference.
 If a file moves, its saved click settings still work. Select the song and use
 Locate audio file to reconnect it. Selecting an existing song uses your saved
 tempo corrections, without analyzing it again.
-The library is D:\Click-Track\data\library.json. Preferences and practice loop
-marks are in data\settings.ini. Back up the data folder to keep your setlist
-and settings; back up your song files separately.
+Windows saves library.json and settings.ini in data beside the app folder.
+Mac saves them in ~/Library/Application Support/ClickTrack. Back up this data
+to keep your setlist and practice marks; back up your song files separately.
 
 SONG POSITION AND PRACTICE LOOPS
 The timeline below Start click lets you choose where a song or its click track
@@ -67,13 +72,14 @@ The original song stays separate. Click volume also sets the exported volume.
 Custom exports may be up to two hours.
 
 AUDIO OUTPUT
-Use Windows default output or choose an output in the app. If you connect new
+Use the system default output or choose an output in the app. If you connect new
 headphones, press Refresh. Bluetooth may add audible delay to visual feedback.
 Song playback uses a lower song level to leave room for the click.
 
 PRIVACY AND SUPPORT
 Song analysis and playback run on this computer. Files are not uploaded.
 No account, cloud service, subscription, or API key is required.
-The active project, app, and saved data are in D:\Click-Track.
-The error log is data\clicktrack.log. Temporary decoder files are in work\temp.
-Editable program source is in source. Third-party licenses are in licenses.
+The error log is clicktrack.log in the data folder described above.
+Windows decoder scratch files are in work/temp beside app; Mac uses cache/temp
+inside the user data folder. Third-party licenses are in licenses.
+Editable source and build recipes: https://github.com/Dr-Ake/Click-Track

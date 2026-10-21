@@ -2,6 +2,7 @@ app/
 app-build/
 data/
 work/
+outputs/
 __pycache__/
 *.py[cod]
 *.log
